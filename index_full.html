@@ -1,0 +1,251 @@
+<html>
+<head>
+<!-- Note to self:  python -m SimpleHTTPServer 5103 -->
+<link rel="import" href="bower_components\polymer\polymer.html"/>
+<link rel="import" href="bower_components\paper-toggle-button\paper-toggle-button.html"/>
+<link rel="import" href="bower_components\paper-slider\paper-slider.html"/>
+<link rel="import" href="more-param.html"/>
+<style>
+	.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+	}
+	body{
+		margin: 10px;
+		padding: 0;
+	}
+	.info{
+		font-size: 0.8em;
+		background: #f5f5f5;
+		padding: 10px;
+		margin-bottom: 10px;
+	}
+	.params{
+		margin-bottom: 40px;
+	}
+	.a_param{
+		margin-bottom: 10px;
+	}
+	.param_caption{
+		margin-right: 20px;
+		font-family: Lucida Console;
+		width: 180px;
+		text-align: right;
+	    display: inline-block;
+		vertical-align: super;
+	}
+</style>
+</head>
+<body class="noselect">
+
+<dom-module id="grid-module">
+<style>
+	.outer{
+		display: inline-block;
+	    white-space: nowrap;
+	}
+	.inner{
+		border-radius: 8px;
+		display: inline-block;
+		width: 24px;
+		height: 24px;
+		line-height: 20px;
+		text-align: center;
+		border: 2px solid;
+		cursor: pointer;
+		box-sizing: border-box;
+		font-family: Arial Black;
+	}
+	.inner[is_active]{
+		background-color: #0f0;
+	}
+</style>
+
+<template>
+<div class="outer">
+	<template is="dom-repeat" items="{{activity_values}}"><div 
+				class="inner" is_active$="{{item}}" 
+				on-tap="cell_tapped" style$="[[make_inline_style(color, render_scaled, scale, num_cells)]]">[[index]]</div></template>
+</div>
+</template>
+
+ <script>
+  "use strict";
+  var SCALE_FACTOR=7;
+ 	Polymer({
+      is: "grid-module",
+      properties: {
+      		num_cells: {
+      			type: Number,
+  		        value: 6,
+	  		    observer: '_num_cells_changed'},
+      		scale: {
+      			type: Number,
+  		        value: 30},
+      		active_idx: {
+      			type: Number,
+      			notify: true,
+				value: 2},
+			activity_values:{
+				type: Array,
+				computed: 'make_activity_values(num_cells, active_idx)'},
+      		render_scaled: {
+      			type: Boolean,
+   			    value: true},
+	   		color: {
+	   			type: String,
+	   			value: '#f88'}
+      	},
+      make_activity_values: function(num_cells, active_idx){
+      	// creates a bool array that is false everywhere except active_idx
+      	var ret = [];
+      	for(var i=0; i<num_cells; i++)
+      		ret.push(active_idx == i);
+      	return ret;
+      },
+      cell_tapped: function(e){
+      	this.set('active_idx', e.model.index);
+      },
+      make_inline_style: function(c, render_scaled, scale, num_cells){
+      	return "border-color:" + c +";" + 
+      			(render_scaled ? "width:" + (scale*SCALE_FACTOR/num_cells) + "px" : "");
+      },
+      _num_cells_changed: function(new_val, old_val){
+      	if(!old_val)
+      		return;
+      	// update active cell to be the same fraction of the way along.
+      	this.set('active_idx', Math.floor(this.active_idx/old_val*new_val));
+      }
+      });
+
+ </script>
+
+</dom-module>
+
+
+<dom-module id="grid-system">
+<style>
+.module_row{
+	margin-left: 30px;
+    white-space: nowrap;
+    font-family: Arial Black;
+}
+.module_axis{
+	position: absolute;
+	left: -15px;
+    top: 25px;
+	-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+}
+:host{
+	position: relative;
+}
+</style>
+
+<template>
+<div class="module_axis">modules</div>
+<template is="dom-repeat" items="{{modules}}" >
+	<div class="module_row">
+	<span>{{item.name}}</span><grid-module scale="[[item.scale]]" render_scaled="[[render_scaled]]" 
+				num_cells="[[num_cells]]" color="[[item.color]]"></grid-module>
+	</div>
+</template>
+	<div class="module_row">...</div>
+</template>
+<script>
+"use strict";
+  var PALETTE= "#ffe4c4 #ffa07a #ff8cc0 #cd5c5c #a52a2a #800000".split(" ");
+Polymer({
+	is: 'grid-system',
+	properties: {
+		num_cells: {
+			type: Number,
+			value: 5,
+			notify: true},
+	    num_modules: {
+	    	type: Number,
+	    	value: 3,
+	    	notify: true},
+	    base_scale: {
+	    	type: Number,
+	    	value: 30,
+	    	notify: true},
+	    module_scale_factor: {
+	    	type: Number,
+	    	value: 1.4,
+	    	notify: true},
+	    modules: {
+	    	type: Array,
+	    	computed: 'make_module_scales(base_scale, num_modules, module_scale_factor)'},
+	    render_scaled: {
+	    	type: Boolean,
+	    	value: true
+	    }
+	},
+	make_module_scales: function(base_scale, num_modules, module_scale_factor){
+		var ret = []
+		var prev;
+		for (var i=0; i<num_modules; i++){
+			prev = i == 0 ? base_scale : prev*module_scale_factor;
+			ret.push({scale: prev,
+					  name: String.fromCharCode(65 + i),
+					  color: PALETTE[i]});
+		}
+		return ret;
+	}
+
+})
+</script>
+</dom-module>
+
+<template is="dom-bind" id="main">
+
+<div class="info">
+This is a simple demonstration of the current <a href="http://www.scholarpedia.org/article/Grid_cells">grid cell</a> dogma, or at any rate it shows how I think grid cells operate.
+<br><br>
+The source is <a href="http://www.github.com/d1manson/toygrids">available on GitHub</a> - you can fork it/follow me there.
+<br><br>
+-DM., Sep 2015.
+</div>
+
+<div class="params">
+	<div class="a_param">
+		<div class="param_caption">render_scaled</div>
+		<paper-toggle-button checked="{{render_scaled}}"></paper-toggle-button>
+		<more-param key='render_scaled' value='{{render_scaled}}' default='true' type='Boolean'></more-param>
+	</div>
+	<div class="a_param">
+		<div class="param_caption">num_modules</div>
+		<paper-slider pin value="{{num_modules}}" min="2" max="6"></paper-slider>
+		<more-param key='num_modules' value='{{num_modules}}' default='3'></more-param>
+	</div>
+	<div class="a_param">
+		<div class="param_caption">num_cells</div>
+		<paper-slider pin value="{{num_cells}}" min="3" max="10"></paper-slider>
+		<more-param key='num_cells' value='{{num_cells}}' default='5'></more-param>
+	</div>
+	<div class="a_param">
+		<div class="param_caption">scale_factor</div>
+		<paper-slider pin value="{{scale_factor}}" min="1.1" max="2" step="0.1"></paper-slider>
+		<more-param key='scale_factor' value='{{scale_factor}}' default='1.4'></more-param>
+	</div>
+</div>
+
+<grid-system render_scaled="[[render_scaled]]"
+			 num_modules="[[num_modules]]"
+			 num_cells="[[num_cells]]"
+			 module_scale_factor="[[scale_factor]]"></grid-system>
+
+</template>
+
+<script>
+	var main = document.getElementById('main');
+
+
+</script>
+</body>
+</html>

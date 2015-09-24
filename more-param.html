@@ -1,0 +1,70 @@
+
+<!--
+
+FORKED-from/INSPIRED-by https://github.com/Polymore/more-param/ 
+changed: refactored for Polymer 1.0, dropped array support, added url-write support.
+
+Example:
+    <more-param key="user" value="{{userId}}" default="joebob"></more-param>
+This example would expose the value of the `user` GET parameter and bind it to
+`userId`. If no user param is present in the URL, `userId` would be set to
+`"joebob"`. If userId is changed then it will be updated in the url in the address bar.
+
+-->
+
+<dom-module is="more-param">
+  <script>
+    Polymer({
+      is: 'more-param',
+      properties: {
+        key: {
+          type: String},
+        value: {
+          observer: '_write_value'
+          //notify is not set to true but is manually implemented inside read_value
+        },
+        type:{
+          //this helps with deserialization
+          type: String,
+          value: "String"
+        },
+        default: {
+          type: String}
+      },
+      attached: function(){
+        this._inited = false;
+        this.async(this._read_value);
+      },
+      _read_value: function(){
+        var parts = this._get_path_parts();
+        var value = this.key in parts ? parts[this.key] : this.default;
+        if(this.type == "Boolean")
+          value = (value == "true")
+        // other types seem to be dealt with appropriately somewhere along the line by polymer
+        this.value = value;
+        this._inited = true;
+        this.fire('value-changed',{value: this.value}); // force-notify this time only (this is what notify: true would have done)
+      },
+      _write_value: function(new_value, old_value){
+        if (!this._inited)
+          return;
+        var parts = this._get_path_parts()
+        parts[this.key] = new_value;
+
+        var s = [];
+        for(var k in parts)if(k && parts.hasOwnProperty(k))
+          s.push(encodeURIComponent(k) + "=" + encodeURIComponent(parts[k]));
+        history.replaceState(undefined, "", "?" + s.join('&'))
+      },
+
+      _get_path_parts: function() {
+        var parts = {};
+        window.location.search.substr(1).split('&').forEach(function(part) {
+          var pair  = part.split('=');
+          parts[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+        });
+        return parts;
+      }
+    });
+  </script>
+</polymer-element>

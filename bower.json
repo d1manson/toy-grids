@@ -1,0 +1,18 @@
+{
+  "name": "toy grids",
+  "version": "0.0.0",
+  "homepage": "https://github.com/ucl-hippocampus/miscellaneous-tools",
+  "authors": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "~1.1.3",
+    "paper-toggle-button": "PolymerElements/paper-toggle-button#~1.0.8",
+    "paper-slider": "PolymerElements/paper-slider#~1.0.6"
+  }
+}
