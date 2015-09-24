@@ -5,6 +5,11 @@
 <link rel="import" href="bower_components\paper-toggle-button\paper-toggle-button.html"/>
 <link rel="import" href="bower_components\paper-slider\paper-slider.html"/>
 <link rel="import" href="more-param.html"/>
+<script>
+  var MAX_LEN=300; //roughly interpretable as cm
+  var SCALE_FACTOR=7; // to go from cm to screen pixels
+ </script>
+
 <style>
 	.noselect {
     -webkit-touch-callout: none;
@@ -65,17 +70,21 @@
 	}
 </style>
 
-<template>
-<div class="outer">
-	<template is="dom-repeat" items="{{activity_values}}"><div 
-				class="inner" is_active$="{{item}}" 
-				on-tap="cell_tapped" style$="[[make_inline_style(color, render_scaled, scale, num_cells)]]">[[index]]</div></template>
-</div>
-</template>
+<template
+><div class="outer"
+	><template is="dom-repeat" 
+		items="{{activity_values}}"><div 
+		class="inner"
+		is_active$="{{item}}" 
+		on-tap="cell_tapped"
+		style$="[[make_inline_style(color, render_scaled, scale, num_cells)]]">[[index]]</div
+		></template
+></div
+></template>
 
  <script>
   "use strict";
-  var SCALE_FACTOR=7;
+
  	Polymer({
       is: "grid-module",
       properties: {
@@ -141,6 +150,11 @@
 	-webkit-transform: rotate(-90deg);
 	-moz-transform: rotate(-90deg);
 }
+.module_caption{
+	margin-right: 5px;
+	width: 20px;
+	display: inline-block;
+}
 :host{
 	position: relative;
 }
@@ -148,13 +162,30 @@
 
 <template>
 <div class="module_axis">modules</div>
-<template is="dom-repeat" items="{{modules}}" >
-	<div class="module_row">
-	<span>{{item.name}}</span><grid-module scale="[[item.scale]]" render_scaled="[[render_scaled]]" 
-				num_cells="[[num_cells]]" color="[[item.color]]"></grid-module>
-	</div>
-</template>
+	<template is="dom-repeat" items="{{modules}}"><div class="module_row"
+		><span class="module_caption">{{item.name}}</span
+		><template is="dom-if" if="[[render_scaled]]"
+			><template is="dom-repeat" items="[[item.off_list]]" as="off"
+				><grid-module 
+					scale="[[item.scale]]"
+					render_scaled="[[render_scaled]]"
+					num_cells="[[num_cells]]"
+					color="[[item.color]]"
+					active_idx="{{item.active_idx}}"></grid-module
+			></template
+		>...</template
+		><template is="dom-if" if="[[!render_scaled]]"
+			><grid-module 
+				scale="[[item.scale]]"
+				render_scaled="[[render_scaled]]"
+				num_cells="[[num_cells]]"
+				color="[[item.color]]"
+				active_idx="{{item.active_idx}}"></grid-module
+		></template
+	></div></template>
+	
 	<div class="module_row">...</div>
+	</div>
 </template>
 <script>
 "use strict";
@@ -164,43 +195,127 @@ Polymer({
 	properties: {
 		num_cells: {
 			type: Number,
-			value: 5,
-			notify: true},
+			value: 5},
 	    num_modules: {
 	    	type: Number,
 	    	value: 3,
-	    	notify: true},
+	    	observer: '_num_modules_changed'},
 	    base_scale: {
 	    	type: Number,
 	    	value: 30,
-	    	notify: true},
+	    	observer: '_base_scale_changed'},
 	    module_scale_factor: {
 	    	type: Number,
 	    	value: 1.4,
-	    	notify: true},
+	    	observer: '_module_scale_factor_changed'},
 	    modules: {
 	    	type: Array,
-	    	computed: 'make_module_scales(base_scale, num_modules, module_scale_factor)'},
+	    	notify: true },
 	    render_scaled: {
 	    	type: Boolean,
 	    	value: true
 	    }
 	},
-	make_module_scales: function(base_scale, num_modules, module_scale_factor){
-		var ret = []
-		var prev;
-		for (var i=0; i<num_modules; i++){
-			prev = i == 0 ? base_scale : prev*module_scale_factor;
-			ret.push({scale: prev,
-					  name: String.fromCharCode(65 + i),
-					  color: PALETTE[i]});
+	_num_modules_changed: function(new_val, old_val){
+		if(this.modules == undefined)
+			this.modules = [];
+		while(this.modules.length < new_val)
+			this.push('modules', {
+				name: String.fromCharCode(65 + this.modules.length),
+				color: PALETTE[this.modules.length],
+				active_idx: 0
+			});
+		this._update_scales();
+	},
+	_module_scale_factor_changed: function(){
+		this._update_scales();
+	},
+	_base_scale_changed: function(){
+		this._update_scales();
+	},
+	_update_scales: function(){
+		if(this.base_scale === undefined || this.num_modules == undefined || this.module_scale_factor == undefined)
+			return; // not ready to do this yet, as part of setting the final value is set we will pass this test and do the work...
+
+		var scale_i;
+		for (var i=0; i<this.num_modules; i++){
+			scale_i = i == 0 ? this.base_scale : scale_i*this.module_scale_factor;
+			var off_list = [];
+			for(var off=0; off<MAX_LEN; off+=scale_i)
+				off_list.push(off)
+			this.set('modules.' + i + '.scale', scale_i);
+			this.set('modules.' + i +'.off_list', off_list);
 		}
-		return ret;
+		this.notifyPath()
 	}
 
 })
 </script>
 </dom-module>
+
+<dom-module id="position-estimate">
+<!-- 
+This is a read-only element, which uses the array of modules maintained by a grid-system.
+-->
+<style>
+canvas{
+	height: 20px;
+}
+:host{
+	margin-left: 55px; /* matches module_row.margin-left + module_caption.width + module_caption.margin-right in grid-system */
+};
+</style>
+<template>
+<canvas id="the_canv" height="1" width$="[[width]]"></canvas>
+</template>
+
+<script>
+"use strict";
+
+Polymer({
+	is: 'position-estimate',
+	properties: {
+		num_cells: {
+			type: Number},
+	    modules: {
+	    	type: Array},
+	    width:{
+	    	value: MAX_LEN*SCALE_FACTOR,
+	    	readOnly: true
+	    }
+	},
+    observers: [
+  		'_update_debounced(modules.*, num_cells)'
+	],
+	_update_debounced: function(){
+		this.debounce("_update", this._update);
+	},
+	_update: function(){
+		console.dir(this.modules)
+
+		var data = new Uint8Array(MAX_LEN*SCALE_FACTOR);
+		for(var i=0; i<data.length; i++){
+			data[i] = i;// TODO: calculate actual value
+		}
+		var ctx = this.$.the_canv.getContext('2d');
+		var img_data = ctx.getImageData(0, 0, MAX_LEN*SCALE_FACTOR, 1);
+		var rgb_data = img_data.data;
+		
+		for(var  j=0; j<data.length; j++){
+			rgb_data[j*4] = data[j];
+			rgb_data[j*4+1] = data[j];
+			rgb_data[j*4+2] = data[j];
+			rgb_data[j*4+3] = 255;
+			}
+		
+		ctx.putImageData(img_data, 0, 0);
+		this.$.the_canv.style.width = MAX_LEN*SCALE_FACTOR + "px"
+
+	}
+})
+</script>
+</dom-module>
+
 
 <template is="dom-bind" id="main">
 
@@ -235,10 +350,15 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 	</div>
 </div>
 
+<position-estimate 
+			 num_cells="[[num_cells]]"
+			 modules="[[modules]]"></position-estimate>
+<br><br>
 <grid-system render_scaled="[[render_scaled]]"
 			 num_modules="[[num_modules]]"
 			 num_cells="[[num_cells]]"
-			 module_scale_factor="[[scale_factor]]"></grid-system>
+			 module_scale_factor="[[scale_factor]]"
+			 modules="{{modules}}"></grid-system>
 
 </template>
 
