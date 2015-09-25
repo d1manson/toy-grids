@@ -1,0 +1,132 @@
+<dom-module id="vector-estimate">
+<!-- 
+This is a read-only element, which uses a pair of arrays of modules maintained by a grid-system.
+It renderes a likelihood for a range of vectors.
+Note that because of some shoddy global script tag within grid-elements.html, this must be included afterwards on the parent page.
+-->
+<style>
+.outer{
+   margin-left: 55px; /* matches module_row.margin-left + module_caption.width + module_caption.margin-right in grid-system */
+  white-space: nowrap;  
+};
+.vector_likelihood{
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  box-sizing: border-box;
+  font-family: Arial Black;
+  border-radius: 2px;
+}
+.start_block{
+  display: inline-block;
+  width: 10px;
+  height: 24px;
+  background: #0f0;
+  border-radius: 12px;
+}
+.end_block{
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: #FFC906;
+  border-radius: 12px;
+}
+.vector_body{
+  display: inline-block;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  height: 2px;
+  background: #000;
+  position: relative;
+}
+.vector_body:after{
+  content: '\25b6';
+  line-height: 24px;
+  position: absolute;
+  right: -4px;
+  top: -12px;
+};
+.vector_row{
+  height: 24px;
+}
+</style>
+
+<template>
+
+<template is="dom-if" if="[[render_scaled]]"><div class="outer"><template is="dom-repeat" items="[[vectors]]"
+  ><div class="vector_row"
+    ><div class="vector_likelihood" style$="[[_make_vector_style(item)]]"></div>
+    <div class="start_block"></div
+    ><div class="vector_body" style$="[[_make_vector_body_style(item)]]"></div
+    ><div class="end_block" style$="[[_make_vector_end_style(item)]]"></div
+  ></div
+></template></div></template>
+
+<template id="else_template" is="dom-if" if="{{!render_scaled}}"><div class="outer"><template is="dom-repeat" items="[[vectors]]"
+  ><div class="vector_likelihood" style$="[[_make_vector_style(item)]]"></div
+></template></div></template>
+
+</template>
+
+<script>
+"use strict";
+
+Polymer({
+   is: 'vector-estimate',
+   properties: {
+      num_cells_grid: {
+         type: Number},
+      num_cells_vector: {
+        type: Number,
+        value: 20},
+      vector_scale_factor: {
+        type: Number,
+        value: 1.3},
+      vector_base: {
+        type: Number,
+        value: 2},
+      render_scaled: {
+        type: Boolean,
+        notify: true},
+      modules_a: {
+         type: Array},
+      modules_b: {
+         type: Array},
+      vectors: {
+        type: Array,
+        readOnly: true,
+        notify: true} 
+   },
+    observers: [
+      '_update_debounced(modules_a.*, modules_b.*, num_cells_grid, num_cells_vector, vector_scale_factor, vector_base)' 
+   ],
+   _make_vector_style: function(v){
+      var p = JET_PALETTE[v.activity];
+      p = [(p >> 16) & 255, (p >> 8) & 255, (p) & 255];
+      return 'background: #ccc;';//rgb(' + p[0] + "," + p[1] + ", " + p[2] + ");"
+   },
+   _make_vector_body_style: function(item){
+      return "width: " + (item.length * SCALE_FACTOR) + "px;"
+   },
+   _make_vector_end_style: function(item){
+      return "width: " + (item.width *SCALE_FACTOR) + "px;"
+   },
+   _update_debounced: function(){
+      this.debounce("_update", this._update);
+   },
+   _update: function(){
+      var ret = [];
+      var length_i;
+      for(var i=0; i<this.num_cells_vector;i++){
+        length_i = i == 0 ? this.vector_base : length_i * this.vector_scale_factor;
+        ret.push({activity: (Math.random()*255) | 0, // TODO: use actul value
+                  length: length_i,
+                  width: length_i*(this.vector_scale_factor -1)}); 
+      }
+      this._setVectors(ret);
+   }
+})
+</script>
+</dom-module>

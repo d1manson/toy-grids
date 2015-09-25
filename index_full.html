@@ -8,6 +8,8 @@
 <link rel="import" href="bower_components\paper-button\paper-button.html"/>
 <link rel="import" href="more-param.html"/>
 <link rel="import" href="grid-elements.html"/>
+<link rel="import" href="vector-estimate.html"/>
+
 
 <style>
 	.noselect {
@@ -22,6 +24,12 @@
 		margin: 10px;
 		padding: 0;
 	}
+	paper-toggle-button{
+		display: inline-block;
+	    vertical-align: top;
+	    margin-top: 0.5em;
+	    margin-left: 15px;
+	}
 	.info{
 		font-size: 0.8em;
 		background: #f5f5f5;
@@ -34,18 +42,25 @@
 		display: none;
 	}
 	.params{
-		margin-bottom: 40px;
+		margin-bottom: 20px;
+		margin-top: 20px;	
+	    display: block;
+	    max-width: 800px;
+    	background-color: #F7F7F7;
+    	padding-top: 5px;
+    	padding-bottom: 5px;
 	}
 	.a_param{
-		margin-bottom: 10px;
+	    height: 32px;
 	}
 	.param_caption{
 		margin-right: 20px;
-		font-family: Lucida Console;
-		width: 180px;
-		text-align: right;
+	    font-family: Lucida Console;
+	    width: 180px;
+	    text-align: right;
 	    display: inline-block;
-		vertical-align: super;
+	    vertical-align: top;
+	    line-height: 32px;
 	}
 	.system_title{
 		font-size: 1.3em;
@@ -80,9 +95,9 @@
 <more-param key='hide_blurb' value='{{hide_blurb}}' default='false' type='Boolean'></more-param>
 
 <div class="info" hide_blurb$="[[hide_blurb]]">
-This is a simple demonstration of the current <a href="http://www.scholarpedia.org/article/Grid_cells">grid cell</a> dogma, or at any rate it shows how I think grid cells operate.  Obviously it's just showing the 1D case, but roughly speaking the extension to 2D doesn't add that much mroe conceptually.  Also note that here we show a very small number of cells in each module, each of which is a binary on-off.  Obviously in practice there should be at least one or two orders of magnitude more cells, each of which has a Gaussian-ish activity profile, with vaugely Poission-like spiking probability.  
+This is an "interactive diagram" showing the current <a href="http://www.scholarpedia.org/article/Grid_cells">grid cell</a> dogma (well, acording to me at least), plus the "vector cells" hypothesised in <a href="http://www.cell.com/neuron/fulltext/S0896-6273(15)00628-5">this paper</a>.  Obviously it's just showing the 1D case, but roughly speaking the extension to 2D doesn't add that much more conceptually.  Also note that here we show a very small number of cells in each module, each of which is a binary on-off unit.  Obviously in practice there should be at least one or two orders of magnitude more cells, each of which has a Gaussian-ish activity profile, with vaugely Poission-like spiking probability.  
 <br><br>
-There are three parts to the page: the parameters bit; the cells bit; and the position estimate bit.  As you modify the parameters you will see the other two updating, note also that the url updates (so you can save or share specific parameter settings).  You can click on individual cells within a module to change which cell is active.   
+There are four parts to the page: the parameters bit; the cells bit; the position estimate bit; and the vector estimate bit.  As you modify the parameters and select different grid cells within each modules, you will see the other bits of the page updating accordingly. Note that the url updates when you modify the parameters (but currently ignores cell selection) so you can save/share your customized settings.
 <br><br>
 There are possibly one or two (minorish) bugs, so watch out! 
 <br><br>
@@ -97,15 +112,11 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 </div>
 
 
+
 <div class="params">
 	<div class="a_param">
-		<div class="param_caption">render_scaled</div>
-		<paper-toggle-button checked="{{render_scaled}}"></paper-toggle-button>
-		<more-param key='render_scaled' value='{{render_scaled}}' default='true' type='Boolean'></more-param>
-	</div>
-	<div class="a_param">
 		<div class="param_caption">num_modules</div>
-		<paper-slider pin value="{{num_modules}}" min="2" max="6"></paper-slider>
+		<paper-slider pin value="{{num_modules}}" min="1" max="6"></paper-slider>
 		<more-param key='num_modules' value='{{num_modules}}' default='3'></more-param>
 	</div>
 	<div class="a_param">
@@ -119,11 +130,20 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 		<more-param key='scale_factor' value='{{scale_factor}}' default='1.4'></more-param>
 	</div>
 	<div class="a_param">
-		<div class="param_caption">show_two_copies</div>
-		<paper-toggle-button checked="{{show_two_copies}}"></paper-toggle-button>
-		<more-param key='show_two_copies' value='{{show_two_copies}}' default='false' type='Boolean'></more-param>
+		<div class="param_caption">render_scaled</div>
+		<paper-toggle-button checked="{{render_scaled}}"></paper-toggle-button>
+		<more-param key='render_scaled' value='{{render_scaled}}' default='true' type='Boolean'></more-param>
 	</div>
+
+	<!-- other params come here, because they cause problems if within a dom-if template -->
+	<more-param key='show_two_copies' value='{{show_two_copies}}' default='false' type='Boolean'></more-param>
+	<more-param key='show_vectors' value='{{show_vectors}}' default='false' type='Boolean'></more-param>
+	<more-param key='num_vectors' value='{{num_vectors}}' default='10'></more-param>
+	<more-param key='vector_scale_factor' value='{{vector_scale_factor}}' default='1.2'></more-param>
+	<more-param key='render_vectors_scaled' value='{{render_vectors_scaled}}' default='false' type='Boolean'></more-param>
+	
 </div>
+
 
 
 <template is="dom-if" if="[[show_two_copies]]"><div class="system_title">Grids in [state 1]:</div></template>
@@ -140,8 +160,15 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 			 modules="[[modules]]"></position-estimate>
 
 
+<div class="params">
+	<div class="a_param">
+		<div class="param_caption">show_two_copies</div>
+		<paper-toggle-button checked="{{show_two_copies}}"></paper-toggle-button>
+	</div>
+</div>
+
 <template is="dom-if" if="[[show_two_copies]]">
-<br><br><br>
+
 <div class="system_title">Grids in [state 2]:</div>
 <grid-system render_scaled="[[render_scaled]]"
 			 num_modules="[[num_modules]]"
@@ -150,13 +177,49 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 			 active_color="#FFC906"
 			 modules="{{modules_b}}"></grid-system>
 
-<br>
+
 <position-estimate 
 			 num_cells="[[num_cells]]"
 			 modules="[[modules_b]]"></position-estimate>
 
-</template>
 
+<div class="params">
+	<div class="a_param">
+		<div class="param_caption">show_vectors</div>
+		<paper-toggle-button checked="{{show_vectors}}"></paper-toggle-button>
+	</div>
+	
+	<template is="dom-if" if="[[show_vectors]]">
+
+	<div class="a_param">
+		<div class="param_caption">num_vectors</div>
+		<paper-slider pin value="{{num_vectors}}" min="5" max="20"></paper-slider>
+	</div>
+	<div class="a_param">
+		<div class="param_caption">vector_scale_factor</div>
+		<paper-slider pin value="{{vector_scale_factor}}" min="1.1" max="2" step="0.1"></paper-slider>
+	</div>
+
+	<div class="a_param">
+		<div class="param_caption">render_vectors_scaled</div>
+		<paper-toggle-button checked="{{render_vectors_scaled}}"></paper-toggle-button>
+	</div>
+
+	</template>
+
+</div>
+
+<template is="dom-if" if="[[show_vectors]]">
+
+	<div class="system_title">Vectors from [state 1] to [state2]:  DOESN'T QUITE WORK YET!!!</div>
+	<vector-estimate num_cells_grid="[[num_cells]]"
+					 modules_a="[[modules]]"
+					 modules_b="[[modules_b]]"
+					 render_scaled="[[render_vectors_scaled]]",
+					 num_cells_vector="[[num_vectors]]"
+					 vector_scale_factor="[[vector_scale_factor]]"></vector-estimate>
+	</template>
+</template>
 
 </template>
 

@@ -34,6 +34,7 @@ This example would expose the value of the `user` GET parameter and bind it to
       attached: function(){
         this._inited = false;
         this.async(this._read_value);
+
       },
       _read_value: function(){
         var parts = this._get_path_parts();
