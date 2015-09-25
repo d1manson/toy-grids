@@ -13221,7 +13221,6 @@ Polymer({
 
 <script>
 "use strict";
-
 Polymer({
    is: 'vector-estimate',
    properties: {
@@ -13230,6 +13229,9 @@ Polymer({
       num_cells_vector: {
         type: Number,
         value: 20},
+      num_repeats: {
+        type: Number,
+        value: 4},
       vector_scale_factor: {
         type: Number,
         value: 1.3},
@@ -13249,12 +13251,12 @@ Polymer({
         notify: true} 
    },
     observers: [
-      '_update_debounced(modules_a.*, modules_b.*, num_cells_grid, num_cells_vector, vector_scale_factor, vector_base)' 
+      '_update_debounced(modules_a.*, modules_b.*, num_cells_grid, num_cells_vector, vector_scale_factor, vector_base, num_repeats)' 
    ],
    _make_vector_style: function(v){
-      var p = JET_PALETTE[v.activity];
+      var p = JET_PALETTE[255-v.activity];
       p = [(p >> 16) & 255, (p >> 8) & 255, (p) & 255];
-      return 'background: #ccc;';//rgb(' + p[0] + "," + p[1] + ", " + p[2] + ");"
+      return 'background: rgb(' + p[0] + "," + p[1] + ", " + p[2] + ");"
    },
    _make_vector_body_style: function(item){
       return "width: " + (item.length * SCALE_FACTOR) + "px;"
@@ -13266,15 +13268,40 @@ Polymer({
       this.debounce("_update", this._update);
    },
    _update: function(){
-      var ret = [];
+      var vecs = [];
       var length_i;
       for(var i=0; i<this.num_cells_vector;i++){
         length_i = i == 0 ? this.vector_base : length_i * this.vector_scale_factor;
-        ret.push({activity: (Math.random()*255) | 0, // TODO: use actul value
+        vecs.push({activity: 0, 
                   length: length_i,
                   width: length_i*(this.vector_scale_factor -1)}); 
       }
-      this._setVectors(ret);
+
+      for(var i=0; i<this.modules_a.length; i++){
+        // for each module (of the same scale in a and b)...
+        var scale_i = this.modules_a[i].scale; 
+        var dn =  (this.modules_b[i].active_idx - this.modules_a[i].active_idx)
+        var dx = dn/ this.num_cells_grid * scale_i;
+        dx = dx< 0 ? 1-dx: dx; // i.e. mod 1;
+        
+        for(var n=0, v=0; n<this.num_repeats; n++, dx+=scale_i){ // consider multiple possible offsets at this scale...
+          // find which vector matches the given length dx
+          while(v < vecs.length && dx > vecs[v].length + vecs[v].width)
+            v++;
+          if(v == vecs.length)
+            break;
+          vecs[v].activity += 1; //increment that vector's acitvity count
+        }
+      }
+
+      // scale the vectors' activities to use full colormap
+      var max_activity = 0;
+      for(var i=0; i<vecs.length; i++)
+        max_activity = Math.max(max_activity, vecs[i].activity);
+      for(var i=0; i<vecs.length; i++)
+        vecs[i].activity = (vecs[i].activity / max_activity * 255) | 0;
+
+      this._setVectors(vecs);
    }
 })
 </script>
@@ -13379,7 +13406,10 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 		<div class="param_caption">vector_scale_factor</div>
 		<paper-slider pin="" value="{{vector_scale_factor}}" min="1.1" max="2" step="0.1"></paper-slider>
 	</div>
-
+	<div class="a_param">
+		<div class="param_caption">num_repeats</div>
+		<paper-slider pin="" value="{{num_repeats}}" min="1" max="5"></paper-slider>
+	</div>
 	<div class="a_param">
 		<div class="param_caption">render_vectors_scaled</div>
 		<paper-toggle-button checked="{{render_vectors_scaled}}"></paper-toggle-button>
@@ -13391,8 +13421,8 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 
 <template is="dom-if" if="[[show_vectors]]">
 
-	<div class="system_title">Vectors from [state 1] to [state2]:  DOESN'T QUITE WORK YET!!!</div>
-	<vector-estimate num_cells_grid="[[num_cells]]" modules_a="[[modules]]" modules_b="[[modules_b]]" render_scaled="[[render_vectors_scaled]]" ,="" num_cells_vector="[[num_vectors]]" vector_scale_factor="[[vector_scale_factor]]"></vector-estimate>
+	<div class="system_title">Vectors from [state 1] to [state2]:</div>
+	<vector-estimate num_cells_grid="[[num_cells]]" modules_a="[[modules]]" modules_b="[[modules_b]]" render_scaled="[[render_vectors_scaled]]" ,="" num_cells_vector="[[num_vectors]]" vector_scale_factor="[[vector_scale_factor]]" num_repeats="[[num_repeats]]"></vector-estimate>
 	</template>
 </template>
 

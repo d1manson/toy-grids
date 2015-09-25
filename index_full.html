@@ -199,7 +199,10 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 		<div class="param_caption">vector_scale_factor</div>
 		<paper-slider pin value="{{vector_scale_factor}}" min="1.1" max="2" step="0.1"></paper-slider>
 	</div>
-
+	<div class="a_param">
+		<div class="param_caption">num_repeats</div>
+		<paper-slider pin value="{{num_repeats}}" min="1" max="5"></paper-slider>
+	</div>
 	<div class="a_param">
 		<div class="param_caption">render_vectors_scaled</div>
 		<paper-toggle-button checked="{{render_vectors_scaled}}"></paper-toggle-button>
@@ -211,13 +214,14 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 
 <template is="dom-if" if="[[show_vectors]]">
 
-	<div class="system_title">Vectors from [state 1] to [state2]:  DOESN'T QUITE WORK YET!!!</div>
+	<div class="system_title">Vectors from [state 1] to [state2]:</div>
 	<vector-estimate num_cells_grid="[[num_cells]]"
 					 modules_a="[[modules]]"
 					 modules_b="[[modules_b]]"
 					 render_scaled="[[render_vectors_scaled]]",
 					 num_cells_vector="[[num_vectors]]"
-					 vector_scale_factor="[[vector_scale_factor]]"></vector-estimate>
+					 vector_scale_factor="[[vector_scale_factor]]"
+					 num_repeats="[[num_repeats]]"></vector-estimate>
 	</template>
 </template>
 
