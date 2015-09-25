@@ -1,6 +1,7 @@
 <html>
 <head>
-<!-- Note to self:  python -m SimpleHTTPServer 5103 -->
+<script src="bower_components\webcomponentsjs\webcomponents-lite.min.js"></script>
+
 <link rel="import" href="bower_components\polymer\polymer.html"/>
 <link rel="import" href="bower_components\paper-toggle-button\paper-toggle-button.html"/>
 <link rel="import" href="bower_components\paper-slider\paper-slider.html"/>
@@ -297,8 +298,6 @@ Polymer({
 		this.debounce("_update", this._update);
 	},
 	_update: function(){
-		console.dir(this.modules)
-
 		var data = new Uint8Array(MAX_LEN*SCALE_FACTOR);
 		var increment = Math.floor(255/this.modules.length);
 		for(var m=0;m<this.modules.length; m++){
