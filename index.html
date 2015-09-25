@@ -10149,9 +10149,65 @@ is separate from validation, and `allowed-pattern` does not affect how the input
 
 
 
+
+
+<script>
+
+  /** @polymerBehavior */
+  Polymer.PaperButtonBehaviorImpl = {
+
+    properties: {
+
+      _elevation: {
+        type: Number
+      }
+
+    },
+
+    observers: [
+      '_calculateElevation(focused, disabled, active, pressed, receivedFocusFromKeyboard)'
+    ],
+
+    hostAttributes: {
+      role: 'button',
+      tabindex: '0'
+    },
+
+    _calculateElevation: function() {
+      var e = 1;
+      if (this.disabled) {
+        e = 0;
+      } else if (this.active || this.pressed) {
+        e = 4;
+      } else if (this.receivedFocusFromKeyboard) {
+        e = 3;
+      }
+      this._elevation = e;
+    }
+  };
+
+  /** @polymerBehavior */
+  Polymer.PaperButtonBehavior = [
+    Polymer.IronButtonState,
+    Polymer.IronControlState,
+    Polymer.PaperButtonBehaviorImpl
+  ];
+
+</script>
+
+
 <script>
   var MAX_LEN=300; //roughly interpretable as cm
   var SCALE_FACTOR=7; // to go from cm to screen pixels
+
+
+/* 256 element jet palette produced in python with matplotlib using command:
+print "new Uint32Array([" + ', '.join("0x{:08X}".format(np.asscalar(c)) 
+                                      for c in (mpl.cm.jet(np.arange(256))*255).astype(np.uint8).view(dtype=np.uint32)
+                                      ) + "])"
+*/
+
+var JET_PALETTE=new Uint32Array([0xFF7F0000, 0xFF840000, 0xFF880000, 0xFF8D0000, 0xFF910000, 0xFF960000, 0xFF9A0000, 0xFF9F0000, 0xFFA30000, 0xFFA80000, 0xFFAC0000, 0xFFB10000, 0xFFB60000, 0xFFBA0000, 0xFFBF0000, 0xFFC30000, 0xFFC80000, 0xFFCC0000, 0xFFD10000, 0xFFD50000, 0xFFDA0000, 0xFFDE0000, 0xFFE30000, 0xFFE80000, 0xFFEC0000, 0xFFF10000, 0xFFF50000, 0xFFFA0000, 0xFFFE0000, 0xFFFF0000, 0xFFFF0000, 0xFFFF0000, 0xFFFF0000, 0xFFFF0400, 0xFFFF0800, 0xFFFF0C00, 0xFFFF1000, 0xFFFF1400, 0xFFFF1800, 0xFFFF1C00, 0xFFFF2000, 0xFFFF2400, 0xFFFF2800, 0xFFFF2C00, 0xFFFF3000, 0xFFFF3400, 0xFFFF3800, 0xFFFF3C00, 0xFFFF4000, 0xFFFF4400, 0xFFFF4800, 0xFFFF4C00, 0xFFFF5000, 0xFFFF5400, 0xFFFF5800, 0xFFFF5C00, 0xFFFF6000, 0xFFFF6400, 0xFFFF6800, 0xFFFF6C00, 0xFFFF7000, 0xFFFF7400, 0xFFFF7800, 0xFFFF7C00, 0xFFFF8000, 0xFFFF8400, 0xFFFF8800, 0xFFFF8C00, 0xFFFF9000, 0xFFFF9400, 0xFFFF9800, 0xFFFF9C00, 0xFFFFA000, 0xFFFFA400, 0xFFFFA800, 0xFFFFAC00, 0xFFFFB000, 0xFFFFB400, 0xFFFFB800, 0xFFFFBC00, 0xFFFFC000, 0xFFFFC400, 0xFFFFC800, 0xFFFFCC00, 0xFFFFD000, 0xFFFFD400, 0xFFFFD800, 0xFFFEDC00, 0xFFFAE000, 0xFFF7E400, 0xFFF4E802, 0xFFF1EC05, 0xFFEDF008, 0xFFEAF40C, 0xFFE7F80F, 0xFFE4FC12, 0xFFE1FF15, 0xFFDDFF18, 0xFFDAFF1C, 0xFFD7FF1F, 0xFFD4FF22, 0xFFD0FF25, 0xFFCDFF29, 0xFFCAFF2C, 0xFFC7FF2F, 0xFFC3FF32, 0xFFC0FF36, 0xFFBDFF39, 0xFFBAFF3C, 0xFFB7FF3F, 0xFFB3FF42, 0xFFB0FF46, 0xFFADFF49, 0xFFAAFF4C, 0xFFA6FF4F, 0xFFA3FF53, 0xFFA0FF56, 0xFF9DFF59, 0xFF9AFF5C, 0xFF96FF5F, 0xFF93FF63, 0xFF90FF66, 0xFF8DFF69, 0xFF89FF6C, 0xFF86FF70, 0xFF83FF73, 0xFF80FF76, 0xFF7DFF79, 0xFF79FF7C, 0xFF76FF80, 0xFF73FF83, 0xFF70FF86, 0xFF6CFF89, 0xFF69FF8D, 0xFF66FF90, 0xFF63FF93, 0xFF5FFF96, 0xFF5CFF9A, 0xFF59FF9D, 0xFF56FFA0, 0xFF53FFA3, 0xFF4FFFA6, 0xFF4CFFAA, 0xFF49FFAD, 0xFF46FFB0, 0xFF42FFB3, 0xFF3FFFB7, 0xFF3CFFBA, 0xFF39FFBD, 0xFF36FFC0, 0xFF32FFC3, 0xFF2FFFC7, 0xFF2CFFCA, 0xFF29FFCD, 0xFF25FFD0, 0xFF22FFD4, 0xFF1FFFD7, 0xFF1CFFDA, 0xFF18FFDD, 0xFF15FFE0, 0xFF12FFE4, 0xFF0FFFE7, 0xFF0CFFEA, 0xFF08FFED, 0xFF05FCF1, 0xFF02F8F4, 0xFF00F4F7, 0xFF00F0FA, 0xFF00EDFE, 0xFF00E9FF, 0xFF00E5FF, 0xFF00E2FF, 0xFF00DEFF, 0xFF00DAFF, 0xFF00D7FF, 0xFF00D3FF, 0xFF00CFFF, 0xFF00CBFF, 0xFF00C8FF, 0xFF00C4FF, 0xFF00C0FF, 0xFF00BDFF, 0xFF00B9FF, 0xFF00B5FF, 0xFF00B1FF, 0xFF00AEFF, 0xFF00AAFF, 0xFF00A6FF, 0xFF00A3FF, 0xFF009FFF, 0xFF009BFF, 0xFF0098FF, 0xFF0094FF, 0xFF0090FF, 0xFF008CFF, 0xFF0089FF, 0xFF0085FF, 0xFF0081FF, 0xFF007EFF, 0xFF007AFF, 0xFF0076FF, 0xFF0073FF, 0xFF006FFF, 0xFF006BFF, 0xFF0067FF, 0xFF0064FF, 0xFF0060FF, 0xFF005CFF, 0xFF0059FF, 0xFF0055FF, 0xFF0051FF, 0xFF004DFF, 0xFF004AFF, 0xFF0046FF, 0xFF0042FF, 0xFF003FFF, 0xFF003BFF, 0xFF0037FF, 0xFF0034FF, 0xFF0030FF, 0xFF002CFF, 0xFF0028FF, 0xFF0025FF, 0xFF0021FF, 0xFF001DFF, 0xFF001AFF, 0xFF0016FF, 0xFF0012FE, 0xFF000FFA, 0xFF000BF5, 0xFF0007F1, 0xFF0003EC, 0xFF0000E8, 0xFF0000E3, 0xFF0000DE, 0xFF0000DA, 0xFF0000D5, 0xFF0000D1, 0xFF0000CC, 0xFF0000C8, 0xFF0000C3, 0xFF0000BF, 0xFF0000BA, 0xFF0000B6, 0xFF0000B1, 0xFF0000AC, 0xFF0000A8, 0xFF0000A3, 0xFF00009F, 0xFF00009A, 0xFF000096, 0xFF000091, 0xFF00008D, 0xFF000088, 0xFF000084, 0xFF00007F]);
  </script>
 
 <style>
@@ -10173,6 +10229,10 @@ is separate from validation, and `allowed-pattern` does not affect how the input
 		padding: 10px;
 		margin-bottom: 10px;
 		max-width: 800px;
+		position: relative;
+	}
+	.info[hide_blurb]{
+		display: none;
 	}
 	.params{
 		margin-bottom: 40px;
@@ -10188,7 +10248,17 @@ is separate from validation, and `allowed-pattern` does not affect how the input
 	    display: inline-block;
 		vertical-align: super;
 	}
-</style>
+	.system_title{
+		font-size: 1.3em;
+	}
+	.close_info{
+		position:absolute;
+		bottom:10px;
+		right:2px;
+		text-align:right;
+		display:block
+	}
+	</style>
 </head>
 <body class="noselect"><div hidden="" by-vulcanize=""><dom-module id="paper-ripple" assetpath="bower_components/paper-ripple/">
 
@@ -12574,6 +12644,188 @@ paper-ripple {
    */
 
 </script>
+<dom-module id="paper-material" assetpath="bower_components/paper-material/">
+  <style>
+    :host {
+      display: block;
+      position: relative;
+    }
+
+    :host([animated]) {
+      @apply(--shadow-transition);
+    }
+
+    :host([elevation="1"]) {
+      @apply(--shadow-elevation-2dp);
+    }
+
+    :host([elevation="2"]) {
+      @apply(--shadow-elevation-4dp);
+    }
+
+    :host([elevation="3"]) {
+      @apply(--shadow-elevation-6dp);
+    }
+
+    :host([elevation="4"]) {
+      @apply(--shadow-elevation-8dp);
+    }
+
+    :host([elevation="5"]) {
+      @apply(--shadow-elevation-16dp);
+    }
+  </style>
+  <template>
+    <content></content>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'paper-material',
+
+    properties: {
+
+      /**
+       * The z-depth of this element, from 0-5. Setting to 0 will remove the
+       * shadow, and each increasing number greater than 0 will be "deeper"
+       * than the last.
+       *
+       * @attribute elevation
+       * @type number
+       * @default 1
+       */
+      elevation: {
+        type: Number,
+        reflectToAttribute: true,
+        value: 1
+      },
+
+      /**
+       * Set this to true to animate the shadow when setting a new
+       * `elevation` value.
+       *
+       * @attribute animated
+       * @type boolean
+       * @default false
+       */
+      animated: {
+        type: Boolean,
+        reflectToAttribute: true,
+        value: false
+      }
+    }
+  });
+</script>
+<dom-module id="paper-button" assetpath="bower_components/paper-button/">
+  <template>
+
+    <style>
+      :host {
+        display: inline-block;
+        position: relative;
+        box-sizing: border-box;
+        min-width: 5.14em;
+        margin: 0 0.29em;
+        background: transparent;
+        text-align: center;
+        font: inherit;
+        text-transform: uppercase;
+        outline-width: 0;
+        border-radius: 3px;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+        cursor: pointer;
+        z-index: 0;
+        padding: 0.7em 0.57em;
+
+        @apply(--paper-button);
+      }
+
+      :host([raised]) .keyboard-focus {
+        font-weight: bold;
+        @apply(--paper-button-raised-keyboard-focus);
+      }
+
+      :host(:not([raised])) .keyboard-focus {
+        font-weight: bold;
+        @apply(--paper-button-flat-keyboard-focus);
+      }
+
+      :host([disabled]) {
+        background: #eaeaea;
+        color: #a8a8a8;
+        cursor: auto;
+        pointer-events: none;
+
+        @apply(--paper-button-disabled);
+      }
+
+      :host([noink]) paper-ripple {
+        display: none;
+      }
+
+      paper-ripple {
+        color: var(--paper-button-ink-color);
+      }
+
+      paper-material {
+        border-radius: inherit;
+        @apply(--layout-fit);
+      }
+
+      .content > ::content * {
+        text-transform: inherit;
+      }
+    </style>
+
+    <paper-ripple></paper-ripple>
+
+    <paper-material class$="[[_computeContentClass(receivedFocusFromKeyboard)]]" elevation="[[_elevation]]" animated=""></paper-material>
+
+    <content></content>
+
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'paper-button',
+
+    behaviors: [
+      Polymer.PaperButtonBehavior
+    ],
+
+    properties: {
+      /**
+       * If true, the button should be styled with a shadow.
+       */
+      raised: {
+        type: Boolean,
+        reflectToAttribute: true,
+        value: false,
+        observer: '_calculateElevation'
+      }
+    },
+
+    _calculateElevation: function() {
+      if (!this.raised) {
+        this._elevation = 0;
+      } else {
+        Polymer.PaperButtonBehaviorImpl._calculateElevation.apply(this);
+      }
+    },
+
+    _computeContentClass: function(receivedFocusFromKeyboard) {
+      var className = 'content ';
+      if (receivedFocusFromKeyboard) {
+        className += ' keyboard-focus';
+      }
+      return className;
+    }
+  });
+</script>
 <dom-module is="more-param">
   <script>
     Polymer({
@@ -12629,9 +12881,8 @@ paper-ripple {
       }
     });
   </script>
-</dom-module></div>
+</dom-module><dom-module id="grid-module" assetpath="/">
 
-<dom-module id="grid-module">
 <style>
 	.outer{
 		display: inline-block;
@@ -12654,7 +12905,7 @@ paper-ripple {
 	}
 </style>
 
-<template><div class="outer"><template is="dom-repeat" items="{{activity_values}}"><div class="inner" is_active$="{{item}}" on-tap="cell_tapped" style$="[[make_inline_style(color, render_scaled, scale, num_cells)]]">[[index]]</div></template></div></template>
+<template><div class="outer"><template is="dom-repeat" items="{{activity_values}}" as="is_active"><div class="inner" on-tap="cell_tapped" style$="[[make_inline_style(color, render_scaled, scale, num_cells, is_active)]]">[[index]]</div></template></div></template>
 
  <script>
   "use strict";
@@ -12669,6 +12920,9 @@ paper-ripple {
       		scale: {
       			type: Number,
   		        value: 30},
+            active_color:{
+               type: String,
+               value: '#0f0'},
       		active_idx: {
       			type: Number,
       			notify: true,
@@ -12693,9 +12947,10 @@ paper-ripple {
       cell_tapped: function(e){
       	this.set('active_idx', e.model.index);
       },
-      make_inline_style: function(c, render_scaled, scale, num_cells){
+      make_inline_style: function(c, render_scaled, scale, num_cells, is_active){
       	return "border-color:" + c +";" + 
-      			(render_scaled ? "width:" + (scale*SCALE_FACTOR/num_cells) + "px" : "");
+      			(render_scaled ? "width:" + (scale*SCALE_FACTOR/num_cells) + "px;" : "") +
+               (is_active ? "background-color:" + this.active_color : "");
       },
       _num_cells_changed: function(new_val, old_val){
       	if(!old_val)
@@ -12710,116 +12965,123 @@ paper-ripple {
 </dom-module>
 
 
-<dom-module id="grid-system">
+
+
+<dom-module id="grid-system" assetpath="/">
+
+
 <style>
 .module_row{
-	margin-left: 30px;
+   margin-left: 30px;
     white-space: nowrap;
     font-family: Arial Black;
 }
 .module_axis{
-	position: absolute;
-	left: -15px;
+   position: absolute;
+   left: -15px;
     top: 25px;
-	-webkit-transform: rotate(-90deg);
-	-moz-transform: rotate(-90deg);
+   -webkit-transform: rotate(-90deg);
+   -moz-transform: rotate(-90deg);
 }
 .module_caption{
-	margin-right: 5px;
-	width: 20px;
-	display: inline-block;
+   margin-right: 5px;
+   width: 20px;
+   display: inline-block;
 }
 :host{
-	position: relative;
+   position: relative;
 }
 </style>
 
 <template>
 <div class="module_axis">modules</div>
-	<template is="dom-repeat" items="{{modules}}"><div class="module_row"><span class="module_caption">{{item.name}}</span><template is="dom-if" if="[[render_scaled]]"><template is="dom-repeat" items="[[item.off_list]]" as="off"><grid-module scale="[[item.scale]]" render_scaled="[[render_scaled]]" num_cells="[[num_cells]]" color="[[item.color]]" active_idx="{{item.active_idx}}"></grid-module></template>...</template><template is="dom-if" if="[[!render_scaled]]"><grid-module scale="[[item.scale]]" render_scaled="[[render_scaled]]" num_cells="[[num_cells]]" color="[[item.color]]" active_idx="{{item.active_idx}}"></grid-module></template></div></template>
-	
-	<div class="module_row">...</div>
-	
+   <template is="dom-repeat" items="{{modules}}"><div class="module_row"><span class="module_caption">{{item.name}}</span><template is="dom-if" if="[[render_scaled]]"><template is="dom-repeat" items="[[item.off_list]]" as="off"><grid-module scale="[[item.scale]]" render_scaled="[[render_scaled]]" num_cells="[[num_cells]]" color="[[item.color]]" active_idx="{{item.active_idx}}" active_color="[[active_color]]"></grid-module></template>...</template><template is="dom-if" if="[[!render_scaled]]"><grid-module scale="[[item.scale]]" render_scaled="[[render_scaled]]" num_cells="[[num_cells]]" color="[[item.color]]" active_idx="{{item.active_idx}}" ,="" active_color="[[active_color]]"></grid-module></template></div></template>
+   
+   <div class="module_row" style="height:10px; margin-top:-10px;">...</div>
+   
 </template>
 <script>
 "use strict";
   var PALETTE= "#ffe4c4 #ffa07a #ff8cc0 #cd5c5c #a52a2a #800000".split(" ");
 Polymer({
-	is: 'grid-system',
-	properties: {
-		num_cells: {
-			type: Number,
-			value: 5},
-	    num_modules: {
-	    	type: Number,
-	    	value: 3,
-	    	observer: '_num_modules_changed'},
-	    base_scale: {
-	    	type: Number,
-	    	value: 30,
-	    	observer: '_base_scale_changed'},
-	    module_scale_factor: {
-	    	type: Number,
-	    	value: 1.4,
-	    	observer: '_module_scale_factor_changed'},
-	    modules: {
-	    	type: Array,
-	    	notify: true },
-	    render_scaled: {
-	    	type: Boolean,
-	    	value: true
-	    }
-	},
-	_num_modules_changed: function(new_val, old_val){
-		if(this.modules == undefined)
-			this.modules = [];
-		while(this.modules.length > new_val)
-			this.pop('modules');
+   is: 'grid-system',
+   properties: {
+      num_cells: {
+         type: Number,
+         value: 5},
+      active_color: {
+         type: String,
+         value: '#0f0'},
+       num_modules: {
+         type: Number,
+         value: 3,
+         observer: '_num_modules_changed'},
+       base_scale: {
+         type: Number,
+         value: 30,
+         observer: '_base_scale_changed'},
+       module_scale_factor: {
+         type: Number,
+         value: 1.4,
+         observer: '_module_scale_factor_changed'},
+       modules: {
+         type: Array,
+         notify: true },
+       render_scaled: {
+         type: Boolean,
+         value: true
+       }
+   },
+   _num_modules_changed: function(new_val, old_val){
+      if(this.modules == undefined)
+         this.modules = [];
+      while(this.modules.length > new_val)
+         this.pop('modules');
 
-		while(this.modules.length < new_val)
-			this.push('modules', {
-				name: String.fromCharCode(65 + this.modules.length),
-				color: PALETTE[this.modules.length],
-				active_idx: 0
-			});
-		this._update_scales();
-	},
-	_module_scale_factor_changed: function(){
-		this._update_scales();
-	},
-	_base_scale_changed: function(){
-		this._update_scales();
-	},
-	_update_scales: function(){
-		if(this.base_scale === undefined || this.num_modules == undefined || this.module_scale_factor == undefined)
-			return; // not ready to do this yet, as part of setting the final value is set we will pass this test and do the work...
+      while(this.modules.length < new_val)
+         this.push('modules', {
+            name: String.fromCharCode(65 + this.modules.length),
+            color: PALETTE[this.modules.length],
+            active_idx: 0
+         });
+      this._update_scales();
+   },
+   _module_scale_factor_changed: function(){
+      this._update_scales();
+   },
+   _base_scale_changed: function(){
+      this._update_scales();
+   },
+   _update_scales: function(){
+      if(this.base_scale === undefined || this.num_modules == undefined || this.module_scale_factor == undefined)
+         return; // not ready to do this yet, as part of setting the final value is set we will pass this test and do the work...
 
-		var scale_i;
-		for (var i=0; i<this.num_modules; i++){
-			scale_i = i == 0 ? this.base_scale : scale_i*this.module_scale_factor;
-			var off_list = [];
-			for(var off=0; off<MAX_LEN; off+=scale_i)
-				off_list.push(off)
-			this.set('modules.' + i + '.scale', scale_i);
-			this.set('modules.' + i +'.off_list', off_list);
-		}
-		this.notifyPath()
-	}
+      var scale_i;
+      for (var i=0; i<this.num_modules; i++){
+         scale_i = i == 0 ? this.base_scale : scale_i*this.module_scale_factor;
+         var off_list = [];
+         for(var off=0; off<MAX_LEN; off+=scale_i)
+            off_list.push(off)
+         this.set('modules.' + i + '.scale', scale_i);
+         this.set('modules.' + i +'.off_list', off_list);
+      }
+      this.notifyPath()
+   }
 
 })
 </script>
 </dom-module>
 
-<dom-module id="position-estimate">
+<dom-module id="position-estimate" assetpath="/">
 
 <style>
 canvas{
-	height: 20px;
-	border-bottom: 2px solid #700;
-	border-top: 2px solid #700;
+   height: 20px;
+   border-bottom: 2px solid #700;
+   border-top: 2px solid #700;
 }
 :host{
-	margin-left: 55px; /* matches module_row.margin-left + module_caption.width + module_caption.margin-right in grid-system */
+   margin-left: 55px; /* matches module_row.margin-left + module_caption.width + module_caption.margin-right in grid-system */
 };
 </style>
 <template>
@@ -12830,56 +13092,58 @@ canvas{
 "use strict";
 
 Polymer({
-	is: 'position-estimate',
-	properties: {
-		num_cells: {
-			type: Number},
-	    modules: {
-	    	type: Array},
-	    width:{
-	    	value: MAX_LEN*SCALE_FACTOR,
-	    	readOnly: true
-	    }
-	},
+   is: 'position-estimate',
+   properties: {
+      num_cells: {
+         type: Number},
+       modules: {
+         type: Array},
+       width:{
+         value: MAX_LEN*SCALE_FACTOR,
+         readOnly: true
+       }
+   },
     observers: [
-  		'_update_debounced(modules.*, num_cells)'
-	],
-	_update_debounced: function(){
-		this.debounce("_update", this._update);
-	},
-	_update: function(){
-		var data = new Uint8Array(MAX_LEN*SCALE_FACTOR);
-		var increment = Math.floor(255/this.modules.length);
-		for(var m=0;m<this.modules.length; m++){
-			var scale = this.modules[m].scale;
-			var active_idx = this.modules[m].active_idx;
-			for(var i=0; i<data.length; i++)
-				data[i] += Math.floor((i/SCALE_FACTOR/scale % 1)
-										*this.num_cells) == active_idx ? increment : 0;
-		}
-		var ctx = this.$.the_canv.getContext('2d');
-		var img_data = ctx.getImageData(0, 0, MAX_LEN*SCALE_FACTOR, 1);
-		var rgb_data = img_data.data;
-		
-		for(var  j=0; j<data.length; j++){
-			rgb_data[j*4] = 255-data[j];
-			rgb_data[j*4+1] = 255-data[j];
-			rgb_data[j*4+2] = 255-data[j];
-			rgb_data[j*4+3] = 255;
-			}
-		
-		ctx.putImageData(img_data, 0, 0);
-		this.$.the_canv.style.width = MAX_LEN*SCALE_FACTOR + "px"
+      '_update_debounced(modules.*, num_cells)'
+   ],
+   _update_debounced: function(){
+      this.debounce("_update", this._update);
+   },
+   _update: function(){
+      var data = new Uint8Array(MAX_LEN*SCALE_FACTOR);
+      var increment = Math.floor(255/this.modules.length);
+      for(var m=0;m<this.modules.length; m++){
+         var scale = this.modules[m].scale;
+         var active_idx = this.modules[m].active_idx;
+         for(var i=0; i<data.length; i++)
+            data[i] += Math.floor((i/SCALE_FACTOR/scale % 1)
+                              *this.num_cells) == active_idx ? increment : 0;
+      }
+      var ctx = this.$.the_canv.getContext('2d');
+      var img_data = ctx.getImageData(0, 0, MAX_LEN*SCALE_FACTOR, 1);
+      var rgb_data = new Uint32Array(img_data.data.buffer);
+      
+      for(var  j=0; j<data.length; j++)
+         rgb_data[j] = JET_PALETTE[data[j]];
+      
+      ctx.putImageData(img_data, 0, 0);
+      this.$.the_canv.style.width = MAX_LEN*SCALE_FACTOR + "px"
 
-	}
+   }
 })
 </script>
 </dom-module>
 
 
+</div>
+
+
+
 <template is="dom-bind" id="main">
 
-<div class="info">
+<more-param key="hide_blurb" value="{{hide_blurb}}" default="false" type="Boolean"></more-param>
+
+<div class="info" hide_blurb$="[[hide_blurb]]">
 This is a simple demonstration of the current <a href="http://www.scholarpedia.org/article/Grid_cells">grid cell</a> dogma, or at any rate it shows how I think grid cells operate.  Obviously it's just showing the 1D case, but roughly speaking the extension to 2D doesn't add that much mroe conceptually.  Also note that here we show a very small number of cells in each module, each of which is a binary on-off.  Obviously in practice there should be at least one or two orders of magnitude more cells, each of which has a Gaussian-ish activity profile, with vaugely Poission-like spiking probability.  
 <br><br>
 There are three parts to the page: the parameters bit; the cells bit; and the position estimate bit.  As you modify the parameters you will see the other two updating, note also that the url updates (so you can save or share specific parameter settings).  You can click on individual cells within a module to change which cell is active.   
@@ -12889,7 +13153,13 @@ There are possibly one or two (minorish) bugs, so watch out!
 The source is <a href="http://www.github.com/d1manson/toy-grids">available on GitHub</a> - you can fork it/follow me there.
 <br><br>
 -DM., Sep 2015.
+<div class="close_info">
+(sets "hide_blurb=true" in url)<br>
+<paper-button raised="" id="close_info_button">close info</paper-button> 
 </div>
+
+</div>
+
 
 <div class="params">
 	<div class="a_param">
@@ -12912,20 +13182,43 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 		<paper-slider pin="" value="{{scale_factor}}" min="1.1" max="2" step="0.1"></paper-slider>
 		<more-param key="scale_factor" value="{{scale_factor}}" default="1.4"></more-param>
 	</div>
+	<div class="a_param">
+		<div class="param_caption">show_two_copies</div>
+		<paper-toggle-button checked="{{show_two_copies}}"></paper-toggle-button>
+		<more-param key="show_two_copies" value="{{show_two_copies}}" default="false" type="Boolean"></more-param>
+	</div>
 </div>
 
 
-<grid-system render_scaled="[[render_scaled]]" num_modules="[[num_modules]]" num_cells="[[num_cells]]" module_scale_factor="[[scale_factor]]" modules="{{modules}}"></grid-system>
+<template is="dom-if" if="[[show_two_copies]]"><div class="system_title">Grids in [state 1]:</div></template>
+<grid-system render_scaled="[[render_scaled]]" num_modules="[[num_modules]]" num_cells="[[num_cells]]" module_scale_factor="[[scale_factor]]" active_color="#0f0" modules="{{modules}}"></grid-system>
 
 <br>
 <position-estimate num_cells="[[num_cells]]" modules="[[modules]]"></position-estimate>
+
+
+<template is="dom-if" if="[[show_two_copies]]">
+<br><br><br>
+<div class="system_title">Grids in [state 2]:</div>
+<grid-system render_scaled="[[render_scaled]]" num_modules="[[num_modules]]" num_cells="[[num_cells]]" module_scale_factor="[[scale_factor]]" active_color="#FFC906" modules="{{modules_b}}"></grid-system>
+
+<br>
+<position-estimate num_cells="[[num_cells]]" modules="[[modules_b]]"></position-estimate>
+
+</template>
+
 
 </template>
 
 <script>
 	var main = document.getElementById('main');
-
-
+    main.addEventListener('dom-change', function() {
+	
+		document.getElementById('close_info_button').addEventListener('tap',function(){
+			main.hide_blurb = true;
+		});
+  
+  });
 </script>
 
 </body></html>

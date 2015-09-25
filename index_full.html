@@ -5,11 +5,9 @@
 <link rel="import" href="bower_components\polymer\polymer.html"/>
 <link rel="import" href="bower_components\paper-toggle-button\paper-toggle-button.html"/>
 <link rel="import" href="bower_components\paper-slider\paper-slider.html"/>
+<link rel="import" href="bower_components\paper-button\paper-button.html"/>
 <link rel="import" href="more-param.html"/>
-<script>
-  var MAX_LEN=300; //roughly interpretable as cm
-  var SCALE_FACTOR=7; // to go from cm to screen pixels
- </script>
+<link rel="import" href="grid-elements.html"/>
 
 <style>
 	.noselect {
@@ -30,6 +28,10 @@
 		padding: 10px;
 		margin-bottom: 10px;
 		max-width: 800px;
+		position: relative;
+	}
+	.info[hide_blurb]{
+		display: none;
 	}
 	.params{
 		margin-bottom: 40px;
@@ -45,291 +47,27 @@
 	    display: inline-block;
 		vertical-align: super;
 	}
-</style>
+	.system_title{
+		font-size: 1.3em;
+	}
+	.close_info{
+		position:absolute;
+		bottom:10px;
+		right:2px;
+		text-align:right;
+		display:block
+	}
+	</style>
 </head>
 <body class="noselect">
 
-<dom-module id="grid-module">
-<style>
-	.outer{
-		display: inline-block;
-	    white-space: nowrap;
-	}
-	.inner{
-		border-radius: 8px;
-		display: inline-block;
-		width: 24px;
-		height: 24px;
-		line-height: 20px;
-		text-align: center;
-		border: 2px solid;
-		cursor: pointer;
-		box-sizing: border-box;
-		font-family: Arial Black;
-	}
-	.inner[is_active]{
-		background-color: #0f0;
-	}
-</style>
-
-<template
-><div class="outer"
-	><template is="dom-repeat" 
-		items="{{activity_values}}"><div 
-		class="inner"
-		is_active$="{{item}}" 
-		on-tap="cell_tapped"
-		style$="[[make_inline_style(color, render_scaled, scale, num_cells)]]">[[index]]</div
-		></template
-></div
-></template>
-
- <script>
-  "use strict";
-
- 	Polymer({
-      is: "grid-module",
-      properties: {
-      		num_cells: {
-      			type: Number,
-  		        value: 6,
-	  		    observer: '_num_cells_changed'},
-      		scale: {
-      			type: Number,
-  		        value: 30},
-      		active_idx: {
-      			type: Number,
-      			notify: true,
-				value: 2},
-			activity_values:{
-				type: Array,
-				computed: 'make_activity_values(num_cells, active_idx)'},
-      		render_scaled: {
-      			type: Boolean,
-   			    value: true},
-	   		color: {
-	   			type: String,
-	   			value: '#f88'}
-      	},
-      make_activity_values: function(num_cells, active_idx){
-      	// creates a bool array that is false everywhere except active_idx
-      	var ret = [];
-      	for(var i=0; i<num_cells; i++)
-      		ret.push(active_idx == i);
-      	return ret;
-      },
-      cell_tapped: function(e){
-      	this.set('active_idx', e.model.index);
-      },
-      make_inline_style: function(c, render_scaled, scale, num_cells){
-      	return "border-color:" + c +";" + 
-      			(render_scaled ? "width:" + (scale*SCALE_FACTOR/num_cells) + "px" : "");
-      },
-      _num_cells_changed: function(new_val, old_val){
-      	if(!old_val)
-      		return;
-      	// update active cell to be the same fraction of the way along.
-      	this.set('active_idx', Math.floor(this.active_idx/old_val*new_val));
-      }
-      });
-
- </script>
-
-</dom-module>
-
-
-<dom-module id="grid-system">
-<style>
-.module_row{
-	margin-left: 30px;
-    white-space: nowrap;
-    font-family: Arial Black;
-}
-.module_axis{
-	position: absolute;
-	left: -15px;
-    top: 25px;
-	-webkit-transform: rotate(-90deg);
-	-moz-transform: rotate(-90deg);
-}
-.module_caption{
-	margin-right: 5px;
-	width: 20px;
-	display: inline-block;
-}
-:host{
-	position: relative;
-}
-</style>
-
-<template>
-<div class="module_axis">modules</div>
-	<template is="dom-repeat" items="{{modules}}"><div class="module_row"
-		><span class="module_caption">{{item.name}}</span
-		><template is="dom-if" if="[[render_scaled]]"
-			><template is="dom-repeat" items="[[item.off_list]]" as="off"
-				><grid-module 
-					scale="[[item.scale]]"
-					render_scaled="[[render_scaled]]"
-					num_cells="[[num_cells]]"
-					color="[[item.color]]"
-					active_idx="{{item.active_idx}}"></grid-module
-			></template
-		>...</template
-		><template is="dom-if" if="[[!render_scaled]]"
-			><grid-module 
-				scale="[[item.scale]]"
-				render_scaled="[[render_scaled]]"
-				num_cells="[[num_cells]]"
-				color="[[item.color]]"
-				active_idx="{{item.active_idx}}"></grid-module
-		></template
-	></div></template>
-	
-	<div class="module_row">...</div>
-	
-</template>
-<script>
-"use strict";
-  var PALETTE= "#ffe4c4 #ffa07a #ff8cc0 #cd5c5c #a52a2a #800000".split(" ");
-Polymer({
-	is: 'grid-system',
-	properties: {
-		num_cells: {
-			type: Number,
-			value: 5},
-	    num_modules: {
-	    	type: Number,
-	    	value: 3,
-	    	observer: '_num_modules_changed'},
-	    base_scale: {
-	    	type: Number,
-	    	value: 30,
-	    	observer: '_base_scale_changed'},
-	    module_scale_factor: {
-	    	type: Number,
-	    	value: 1.4,
-	    	observer: '_module_scale_factor_changed'},
-	    modules: {
-	    	type: Array,
-	    	notify: true },
-	    render_scaled: {
-	    	type: Boolean,
-	    	value: true
-	    }
-	},
-	_num_modules_changed: function(new_val, old_val){
-		if(this.modules == undefined)
-			this.modules = [];
-		while(this.modules.length > new_val)
-			this.pop('modules');
-
-		while(this.modules.length < new_val)
-			this.push('modules', {
-				name: String.fromCharCode(65 + this.modules.length),
-				color: PALETTE[this.modules.length],
-				active_idx: 0
-			});
-		this._update_scales();
-	},
-	_module_scale_factor_changed: function(){
-		this._update_scales();
-	},
-	_base_scale_changed: function(){
-		this._update_scales();
-	},
-	_update_scales: function(){
-		if(this.base_scale === undefined || this.num_modules == undefined || this.module_scale_factor == undefined)
-			return; // not ready to do this yet, as part of setting the final value is set we will pass this test and do the work...
-
-		var scale_i;
-		for (var i=0; i<this.num_modules; i++){
-			scale_i = i == 0 ? this.base_scale : scale_i*this.module_scale_factor;
-			var off_list = [];
-			for(var off=0; off<MAX_LEN; off+=scale_i)
-				off_list.push(off)
-			this.set('modules.' + i + '.scale', scale_i);
-			this.set('modules.' + i +'.off_list', off_list);
-		}
-		this.notifyPath()
-	}
-
-})
-</script>
-</dom-module>
-
-<dom-module id="position-estimate">
-<!-- 
-This is a read-only element, which uses the array of modules maintained by a grid-system.
--->
-<style>
-canvas{
-	height: 20px;
-	border-bottom: 2px solid #700;
-	border-top: 2px solid #700;
-}
-:host{
-	margin-left: 55px; /* matches module_row.margin-left + module_caption.width + module_caption.margin-right in grid-system */
-};
-</style>
-<template>
-<canvas id="the_canv" height="1" width$="[[width]]"></canvas>
-</template>
-
-<script>
-"use strict";
-
-Polymer({
-	is: 'position-estimate',
-	properties: {
-		num_cells: {
-			type: Number},
-	    modules: {
-	    	type: Array},
-	    width:{
-	    	value: MAX_LEN*SCALE_FACTOR,
-	    	readOnly: true
-	    }
-	},
-    observers: [
-  		'_update_debounced(modules.*, num_cells)'
-	],
-	_update_debounced: function(){
-		this.debounce("_update", this._update);
-	},
-	_update: function(){
-		var data = new Uint8Array(MAX_LEN*SCALE_FACTOR);
-		var increment = Math.floor(255/this.modules.length);
-		for(var m=0;m<this.modules.length; m++){
-			var scale = this.modules[m].scale;
-			var active_idx = this.modules[m].active_idx;
-			for(var i=0; i<data.length; i++)
-				data[i] += Math.floor((i/SCALE_FACTOR/scale % 1)
-										*this.num_cells) == active_idx ? increment : 0;
-		}
-		var ctx = this.$.the_canv.getContext('2d');
-		var img_data = ctx.getImageData(0, 0, MAX_LEN*SCALE_FACTOR, 1);
-		var rgb_data = img_data.data;
-		
-		for(var  j=0; j<data.length; j++){
-			rgb_data[j*4] = 255-data[j];
-			rgb_data[j*4+1] = 255-data[j];
-			rgb_data[j*4+2] = 255-data[j];
-			rgb_data[j*4+3] = 255;
-			}
-		
-		ctx.putImageData(img_data, 0, 0);
-		this.$.the_canv.style.width = MAX_LEN*SCALE_FACTOR + "px"
-
-	}
-})
-</script>
-</dom-module>
 
 
 <template is="dom-bind" id="main">
 
-<div class="info">
+<more-param key='hide_blurb' value='{{hide_blurb}}' default='false' type='Boolean'></more-param>
+
+<div class="info" hide_blurb$="[[hide_blurb]]">
 This is a simple demonstration of the current <a href="http://www.scholarpedia.org/article/Grid_cells">grid cell</a> dogma, or at any rate it shows how I think grid cells operate.  Obviously it's just showing the 1D case, but roughly speaking the extension to 2D doesn't add that much mroe conceptually.  Also note that here we show a very small number of cells in each module, each of which is a binary on-off.  Obviously in practice there should be at least one or two orders of magnitude more cells, each of which has a Gaussian-ish activity profile, with vaugely Poission-like spiking probability.  
 <br><br>
 There are three parts to the page: the parameters bit; the cells bit; and the position estimate bit.  As you modify the parameters you will see the other two updating, note also that the url updates (so you can save or share specific parameter settings).  You can click on individual cells within a module to change which cell is active.   
@@ -339,7 +77,13 @@ There are possibly one or two (minorish) bugs, so watch out!
 The source is <a href="http://www.github.com/d1manson/toy-grids">available on GitHub</a> - you can fork it/follow me there.
 <br><br>
 -DM., Sep 2015.
+<div class="close_info">
+(sets "hide_blurb=true" in url)<br>
+<paper-button raised id="close_info_button">close info</paper-button> 
 </div>
+
+</div>
+
 
 <div class="params">
 	<div class="a_param">
@@ -362,13 +106,20 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 		<paper-slider pin value="{{scale_factor}}" min="1.1" max="2" step="0.1"></paper-slider>
 		<more-param key='scale_factor' value='{{scale_factor}}' default='1.4'></more-param>
 	</div>
+	<div class="a_param">
+		<div class="param_caption">show_two_copies</div>
+		<paper-toggle-button checked="{{show_two_copies}}"></paper-toggle-button>
+		<more-param key='show_two_copies' value='{{show_two_copies}}' default='false' type='Boolean'></more-param>
+	</div>
 </div>
 
 
+<template is="dom-if" if="[[show_two_copies]]"><div class="system_title">Grids in [state 1]:</div></template>
 <grid-system render_scaled="[[render_scaled]]"
 			 num_modules="[[num_modules]]"
 			 num_cells="[[num_cells]]"
 			 module_scale_factor="[[scale_factor]]"
+			 active_color="#0f0"
 			 modules="{{modules}}"></grid-system>
 
 <br>
@@ -376,12 +127,36 @@ The source is <a href="http://www.github.com/d1manson/toy-grids">available on Gi
 			 num_cells="[[num_cells]]"
 			 modules="[[modules]]"></position-estimate>
 
+
+<template is="dom-if" if="[[show_two_copies]]">
+<br><br><br>
+<div class="system_title">Grids in [state 2]:</div>
+<grid-system render_scaled="[[render_scaled]]"
+			 num_modules="[[num_modules]]"
+			 num_cells="[[num_cells]]"
+			 module_scale_factor="[[scale_factor]]"
+			 active_color="#FFC906"
+			 modules="{{modules_b}}"></grid-system>
+
+<br>
+<position-estimate 
+			 num_cells="[[num_cells]]"
+			 modules="[[modules_b]]"></position-estimate>
+
+</template>
+
+
 </template>
 
 <script>
 	var main = document.getElementById('main');
-
-
+    main.addEventListener('dom-change', function() {
+	
+		document.getElementById('close_info_button').addEventListener('tap',function(){
+			main.hide_blurb = true;
+		});
+  
+  });
 </script>
 </body>
 </html>
